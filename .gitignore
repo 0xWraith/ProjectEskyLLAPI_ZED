@@ -38,5 +38,5 @@ bin/
 *.app
 
 .vs/ProjectEskyLLAPI
-src/Tracker/IntelT265
-src/Tracker/X
+# src/Tracker/IntelT265
+# src/Tracker/X
