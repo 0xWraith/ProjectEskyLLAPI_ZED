@@ -1,0 +1,23 @@
+; file used by Visual Studio plugin builds, mostly for 32-bit
+; to stop mangling our exported function names
+
+LIBRARY
+
+EXPORTS
+   UnityPluginLoad
+   UnityPluginUnload
+   SetRenderTexturePointer
+   HookDeviceToZed
+   GetRenderEventFunc
+   CompletedMeshUpdate
+   StopSpatialMapping
+   StartSpatialMapping
+   OnRenderEvent
+   OnGraphicsDeviceEvent
+   InitializeCameraObject
+   StartCamera
+   HookToSensor
+   SetTextureCallback
+   StopCamera
+   SubscribeCallback
+   SubscribeToInitializedCallback
