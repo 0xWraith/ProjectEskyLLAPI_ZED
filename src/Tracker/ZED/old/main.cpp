@@ -65,24 +65,7 @@ extern "C" {
             to->ImportMap(inputData, Length); 
         }
     } 
-    DLL_EXPORT void ObtainObjectPoseInLocalizedMap(const char* objectID) {
-        if (to != nullptr) { 
-            to->GrabObjectPose(objectID);
-        }
-        else {
-            Debug::Log("WARNING: Tracker not initialized", Color::Yellow);
-            nullptr;
-        }
-    }
-    DLL_EXPORT void SetObjectPoseInLocalizedMap(const char* objectID, float tx, float ty, float tz, float qx, float qy, float qz, float qw) {
-        if (to != nullptr) {
-            Debug::Log("Trying to do the object pose saving", Color::Yellow);
-            to->SetObjectPose(objectID,tx,ty,tz,qx,qy,qz,qw);
-        }
-        else { 
-            Debug::Log("WARNING: Tracker not initialized", Color::Yellow);
-        } 
-    }     
+
     
 
     typedef void(*FuncCallBack2)(int LocalizationDelegate);

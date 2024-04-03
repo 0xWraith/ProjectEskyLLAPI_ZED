@@ -41,21 +41,26 @@ extern "C" {
             Debug::Log("StartTrackerThread: Tracker hasn't been initialized");
             return;
         }
-        trackerThreadPtr = new std::thread(trackerThread, use_localization);
+        trackerThreadPtr = new std::thread(trackerThread, use_localization);    
     }
 
     DLL_EXPORT void StopTrackers() {
         Debug::Log("Stopping Trackers");
-    }
 
-    DLL_EXPORT void SetObjectPoseInLocalizedMap(const char* object_id, float tx, float ty, float tz, float qx, float qy, float qz, float qw) {
-        Debug::Log("Setting Object Pose In Localized Map");
-        std::cout << "Arguments: " << object_id << " " << tx << " " << ty << " " << tz << " " << qx << " " << qy << " " << qz << " " << qw << std::endl;
-    }
-
-    DLL_EXPORT void ObtainObjectPoseInLocalizedMap(const char* object_id) {
-        Debug::Log("Obtaining Object Pose In Localized Map");
-        std::cout << "Arguments: " << object_id << std::endl;
+        if (to != nullptr) {
+            to->thread_alive = false;
+            if (trackerThreadPtr != nullptr) {
+                trackerThreadPtr->join();
+                delete trackerThreadPtr;
+                trackerThreadPtr = nullptr;
+                Debug::Log("Tracker Thread Stopped");
+            }
+            else {
+                Debug::Log("Tracker Thread Pointer is Null");
+            }
+        } else {
+            Debug::Log("Tracker Object is Null");
+        }
     }
 
     DLL_EXPORT void ObtainMap() {

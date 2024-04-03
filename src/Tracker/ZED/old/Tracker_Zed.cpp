@@ -63,23 +63,9 @@ public:
     void SetOrigin() {
         doSetOriginMapInfo = true;
     }
-    bool grabOriginPose = false;
-    void GrabObjectPose(string objectID) {
-        if (hasLocalized) {
-            Debug::Log("Was able to call back, but needs to fire events locally");
-            grabOriginPose = true;
-        }
-        else {
-            Debug::Log("ERROR: The map hasn't localized yet!", Color::Red);
-        }
-    }
+
     void ClearObjectPoses() {
         posesToUpdate.clear();
-    }
-    void SetObjectPose(const char* objReference, float tx, float ty, float tz, float qx, float qy, float qz, float qw) {
-        Debug::Log("Attempting to set rs2pose");
-        Debug::Log(objReference);
-        Debug::Log("Should try to save the info now");
     }
     void ProcessPoseCache() {
 

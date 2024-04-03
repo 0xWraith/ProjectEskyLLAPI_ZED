@@ -1,5 +1,5 @@
 
-//#define VS_CODE
+#define VS_CODE
 
 #include <array>
 #include <cmath>
@@ -44,11 +44,13 @@ public:
     typedef void(*FuncCallBack4)(int tracker_id, string objectID, float tx, float ty, float tz, float qx, float qy, float qz, float qw);
     FuncCallBack4 callback_object_pose_received = nullptr;
 
+
     sl::Mat current_image;
     sl::Mat current_gpu_image;
     ID3D11Device* device = nullptr;
     
-    int test = 0;
+    bool thread_alive = true;
+    bool start_spacial_mapping = false;
 
     TrackerObject(FuncCallBack callback);
 
@@ -56,5 +58,10 @@ public:
     void tracking(bool use_localization);
 
 private: 
-    sl::InitParameters configureCamera(sl::RESOLUTION resolution, sl::FLIP_MODE flip, sl::DEPTH_MODE depth_mode, sl::COORDINATE_SYSTEM coordinate_system, sl::UNIT coordinate_units);
+
+    bool spatial_mapping_succesfully_started = false;
+
+    sl::PositionalTrackingParameters configure_positional_tracking_parameters(bool enable_pose_smoothing, sl::POSITIONAL_TRACKING_MODE mode);
+    sl::InitParameters configure_init_parameters(sl::RESOLUTION resolution, sl::FLIP_MODE flip, sl::DEPTH_MODE depth_mode, sl::COORDINATE_SYSTEM coordinate_system, sl::UNIT coordinate_units);
+    sl::SpatialMappingParameters configure_spatial_mapping_parameters(float resolution_meter, bool use_chunk_only, float range_meter, bool save_texture, sl::SpatialMappingParameters::SPATIAL_MAP_TYPE map_type);
 };
