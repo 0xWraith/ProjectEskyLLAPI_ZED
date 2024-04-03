@@ -62,10 +62,19 @@ void TrackerObject::tracking(bool use_localization) {
         }
         err = zed.grab();
         if (err == sl::ERROR_CODE::SUCCESS) {
+            
             this->process_camera_position(zed, &tracking_state);
+
             if (spatial_mapping_succesfully_started) {
                 this->process_spatial_mapping(zed, &last_time_stamp);
             }
+
+            if (!lock_image) {
+                this->process_retreived_image(zed);
+            }
+
+
+
         } else {
             std::stringstream ss;
             ss << "Error " << err << ", while grabbing frame";
@@ -212,4 +221,48 @@ void TrackerObject::process_spatial_mapping(sl::Camera& zed, chrono::high_resolu
             }
         }
     }
+}
+
+void TrackerObject::process_retreived_image(sl::Camera& zed) {
+    if (lock_image) {
+        return;
+    }
+    sl::ERROR_CODE err = zed.retrieveImage(current_image, sl::VIEW::LEFT, sl::MEM::CPU);
+    if (zed.retrieveImage(current_image, sl::VIEW::LEFT, sl::MEM::CPU) != sl::ERROR_CODE::SUCCESS) {
+        std::stringstream ss;
+        ss << "Error " << err << ", while retrieving image";
+        Debug::Log(ss.str());
+        return;
+    }
+    if (texture_width != 0) {
+        return;
+    }
+    texture_width = current_image.getWidth();
+    texture_height = current_image.getHeight();
+    texture_channels = current_image.getChannels();
+    sl::CameraInformation camera_info = zed.getCameraInformation();
+    if (texture_initialized_callback != nullptr) {
+        texture_initialized_callback(texture_width, texture_height, texture_channels, camera_info.camera_configuration.calibration_parameters.left_cam.v_fov);
+    }
+}
+
+void TrackerObject::update_camera_texture_gpu() {
+    if (device == nullptr) {
+        Debug::Log("Device is null");
+		return;
+	}
+    ID3D11DeviceContext* context = nullptr;
+    device->GetImmediateContext(&context);
+    if (context == nullptr) {
+        Debug::Log("Context is null");
+        return;
+    }
+    if (d3d_texture == nullptr) {
+        Debug::Log("D3D Texture is null");
+        return;
+    }
+    lock_image = true;
+    context->UpdateSubresource(d3d_texture, 0, NULL, current_image.getPtr<sl::uchar1>(), texture_width * texture_channels, 0);
+    lock_image = false;
+    context->Release();
 }

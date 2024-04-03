@@ -17,6 +17,9 @@ extern "C" {
     ID3D11Device* device = nullptr;
     std::thread* trackerThreadPtr = nullptr;
 
+    static IUnityGraphics* graphics = NULL;
+    static IUnityInterfaces* unity_interfaces = NULL;
+
     DLL_EXPORT float* GetLatestPose() {
         std::stringstream ss;
         ss << "Getting Latest Pose: " << (to == nullptr ? " Tracker Object is Null" : " Tracker Object is not Null");
@@ -66,18 +69,38 @@ extern "C" {
 
     DLL_EXPORT void HookDeviceToZed() {
         Debug::Log("Hooking Device To Zed");
+        if (to == nullptr) {
+            Debug::Log("HookDeviceToZed: Tracker hasn't been initialized");
+            return;
+        }
+        to->device = device;
     }
 
     DLL_EXPORT void SetTextureInitializedCallback(TrackerObject::FuncTextureInitializedCallback callback) {
         Debug::Log("Setting Texture Initialized Callback");
+        if (to == nullptr) {
+            Debug::Log("SetTextureInitializedCallback: Tracker hasn't been initialized");
+            return;
+        }
+        to->texture_initialized_callback = callback;
     }
 
     DLL_EXPORT void RegisterMeshCompleteCallback(TrackerObject::FuncMeshCompleteCallback callback) { 
         Debug::Log("Registering Mesh Complete Callback");
+        if (to == nullptr) {
+            Debug::Log("RegisterMeshCompleteCallback: Tracker hasn't been initialized");
+            return;
+        }
+        to->mesh_complete_callback = callback;
     }
     
     DLL_EXPORT void RegisterMeshCallback(TrackerObject::FuncMeshCallback my_callback) {
         Debug::Log("Registering Mesh Callback");
+        if (to == nullptr) {
+            Debug::Log("RegisterMeshCallback: Tracker hasn't been initialized");
+            return;
+        }
+        to->mesh_callback = my_callback;
     }
 
     DLL_EXPORT void SetMapData(unsigned char* input_data, int Length) {
@@ -106,6 +129,11 @@ extern "C" {
 
     DLL_EXPORT void SetRenderTexturePointer(void* texture_handle) {
         Debug::Log("Setting Render Texture Pointer");
+        if (to == nullptr) {
+            Debug::Log("SetRenderTexturePointer: Tracker hasn't been initialized");
+            return;
+        }
+        to->d3d_texture = (ID3D11Texture2D*)texture_handle;
     }
 
     DLL_EXPORT void CompletedMeshUpdate() {
@@ -117,6 +145,29 @@ extern "C" {
         to->request_new_chunks = true;
     }
 
+    static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType) {
+        Debug::Log("OnGraphicsDeviceEvent");
+        if (eventType == kUnityGfxDeviceEventInitialize) {
+            IUnityGraphicsD3D11* d3d = unity_interfaces->Get<IUnityGraphicsD3D11>();
+            device = d3d->GetDevice();
+        }
+        else if (eventType == kUnityGfxDeviceEventShutdown) {
+            Debug::Log("Shutdown");
+        }       
+    }
+
+    extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginUnload() {
+        Debug::Log("Unity Plugin Unload");
+        graphics->UnregisterDeviceEventCallback(OnGraphicsDeviceEvent);
+    }
+
+    extern "C" void	UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces * unity_interfaces) {
+        unity_interfaces = unity_interfaces;
+        graphics = unity_interfaces->Get<IUnityGraphics>();
+        graphics->RegisterDeviceEventCallback(OnGraphicsDeviceEvent); 
+        OnGraphicsDeviceEvent(kUnityGfxDeviceEventInitialize);
+    }
+
     DLL_EXPORT void RegisterDebugCallback(FuncCallBack cb);
     DLL_EXPORT void RegisterBinaryMapCallback(TrackerObject::FuncCallBack3 cb);
     DLL_EXPORT void RegisterObjectPoseCallback(TrackerObject::FuncCallBack4 cb);
@@ -125,6 +176,9 @@ extern "C" {
 
 static void UNITY_INTERFACE_API OnRenderEvent(int event_id) {
     Debug::Log("On Render Event");
+    if (to != nullptr) {
+        to->update_camera_texture_gpu();
+    }
 }
 
 extern "C" UnityRenderingEvent UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetRenderEventFunc() {
@@ -170,7 +224,7 @@ void trackerThread(bool use_localization) {
         Debug::Log("Tracker hasn't been initialized");
         return;
     }
-    Debug::Log("Tracker Thread");
+    Debug::Log("Tracker Thread Started");
     to->tracking(use_localization);
     delete to;
     to = nullptr;

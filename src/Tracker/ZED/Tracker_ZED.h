@@ -47,10 +47,8 @@ public:
     typedef void(*FuncCallBack4)(int tracker_id, string objectID, float tx, float ty, float tz, float qx, float qy, float qz, float qw);
     FuncCallBack4 callback_object_pose_received = nullptr;
 
-
-    sl::Mat current_image;
-    sl::Mat current_gpu_image;
     ID3D11Device* device = nullptr;
+    ID3D11Texture2D* d3d_texture = nullptr;
     
     bool thread_alive = true;
 
@@ -58,14 +56,21 @@ public:
     bool stop_spacial_mapping = false;
     bool start_spacial_mapping = false;
 
+    bool lock_image = false;
+
     float camera_position[6] = { 0, 0, 0, 0, 0, 0 };
 
     TrackerObject(FuncCallBack callback);
 
     void stopTracking();
     void tracking(bool use_localization);
+    void update_camera_texture_gpu();
 
 private: 
+    int texture_width = 0;
+    int texture_height = 0;
+    int texture_channels = 0;
+    sl::Mat current_image;
 
     bool spatial_mapping_succesfully_started = false;
 
@@ -73,6 +78,7 @@ private:
     sl::InitParameters configure_init_parameters(sl::RESOLUTION resolution, sl::FLIP_MODE flip, sl::DEPTH_MODE depth_mode, sl::COORDINATE_SYSTEM coordinate_system, sl::UNIT coordinate_units);
     sl::SpatialMappingParameters configure_spatial_mapping_parameters(float resolution_meter, bool use_chunk_only, float range_meter, bool save_texture, sl::SpatialMappingParameters::SPATIAL_MAP_TYPE map_type);
 
+    void process_retreived_image(sl::Camera& zed);
     void process_camera_position(sl::Camera& zed, sl::POSITIONAL_TRACKING_STATE* tracking_state);
     void process_spatial_mapping(sl::Camera& zed, chrono::high_resolution_clock::time_point* last_time_stamp);
 };

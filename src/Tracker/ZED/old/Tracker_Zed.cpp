@@ -246,9 +246,10 @@ public:
                         //pose[5] = zed_rotation.getEulerAngles().z;
                         //pose[6] = zed_rotation.getOrientation().w;
 
-                        //-----------------------------------------
                     }
                     else { zedRequestSuccess = false; }
+                    //-----------------------------------------
+                    //-----------------------------------------
                     if (mapping_activated) {
                         mapping_state = zed.getSpatialMappingState();
                         auto duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - ts_last).count();
@@ -292,10 +293,12 @@ public:
                             }
                         }
                     }
+                    //-----------------------------------------
                     if(zedRequestSuccess){
                         if (!LockImage) {
                             if (zed.retrieveImage(currentImage, sl::VIEW::LEFT, sl::MEM::CPU) == sl::ERROR_CODE::SUCCESS) {
-                                if (textureWidth == 0) {//we are unitialized 
+                                if (textureWidth == 0) 
+                                {//we are unitialized 
                                     textureWidth = currentImage.getWidth();
                                     textureHeight = currentImage.getHeight();
                                     textureChannels = currentImage.getChannels();
@@ -307,12 +310,16 @@ public:
                             }
                         }
                     }
+                    
+                    //-----------------------------------------
                     if (shouldStopSpatialMapping) {
                         mapping_activated = false;
                         shouldStopSpatialMapping = false;
                         Debug::Log("ZED: Disabling Spatial Mapping!", Color::Green);
                         zed.disableSpatialMapping();
                     }
+                    //-----------------------------------------
+
                     if (shouldUploadData) {
                         shouldUploadData = false;
                         try {
