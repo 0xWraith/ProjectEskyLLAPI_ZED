@@ -59,10 +59,7 @@ public:
     void StopTracking() {
         ExitThreadLoop = true;
     }
-    bool doSetOriginMapInfo = false;
-    void SetOrigin() {
-        doSetOriginMapInfo = true;
-    }
+
 
     void ClearObjectPoses() {
         posesToUpdate.clear();
@@ -94,9 +91,6 @@ public:
         else {
             Debug::Log("ERROR: map callback doesn't exist? How the F*@(#& did this happen when it's supposed to on awake? Zzzz", Color::Red);
         }
-    }
-    void FreeToGrabChunks() {
-        shouldRequestNewChunks = true;
     }
     bool shouldRequestNewChunks = true;
     bool isFirst = true;
@@ -139,6 +133,7 @@ public:
         //The outer loop (allows for device graceful restarts)
         while (!ExitThreadLoop) {
             try {
+                //-----------------------------------------
                 Camera zed;
                 didLoadMap = false;
                 bool doExportMap = false;
@@ -172,6 +167,13 @@ public:
                     oss << "Error enabling positional tracking: " << err << ".\n";
                     Debug::Log(oss.str(), Color::Green);
                 }
+                //-----------------------------------------
+
+
+
+
+
+
                 bool zed_has_imu = (zed.getCameraInformation().camera_model != MODEL::ZED);
                 SensorsData sensor_data;
                 Pose zed_pose;
@@ -183,6 +185,8 @@ public:
                 std::vector<int> triangleIndicies;
                 bool zedRequestSuccess = false;
                 while (!shouldRestart) {
+
+                    //-----------------------------------------
                     if (shouldStartSpatialMapping) { 
                         Debug::Log("ZED: Starting Spatial Mapping");
                         shouldStartSpatialMapping = false;
@@ -200,7 +204,15 @@ public:
                             Debug::Log("ZED: Spatial Mapping couldn't be Started", Color::Red);
                         }
                     }
+                    //-----------------------------------------
+
+
+
+
+
                     if (zed.grab() == ERROR_CODE::SUCCESS) {
+                        //-----------------------------------------
+                        
                         POSITIONAL_TRACKING_STATE state = zed.getPosition(zed_pose, REFERENCE_FRAME::WORLD);
                         if (state != tracking_state) {
                             tracking_state = state;
@@ -233,6 +245,8 @@ public:
                         //pose[4] = zed_rotation.getEulerAngles().y;
                         //pose[5] = zed_rotation.getEulerAngles().z;
                         //pose[6] = zed_rotation.getOrientation().w;
+
+                        //-----------------------------------------
                     }
                     else { zedRequestSuccess = false; }
                     if (mapping_activated) {

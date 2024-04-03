@@ -26,13 +26,16 @@
 #include "IUnityGraphics.h"
 class TrackerObject {
 public:
+
+    static const int REQUEST_CHUNKS_TIME_INTERVAL = 2000;
+
     typedef void(*FuncTextureInitializedCallback)(int texture_width, int texture_height, int texture_channels, float v_fov);
     FuncTextureInitializedCallback texture_initialized_callback = nullptr;
     
     typedef void(*FuncMeshCompleteCallback)();
     FuncMeshCompleteCallback mesh_complete_callback = nullptr;
 
-    typedef void(*FuncMeshCallback)(int chunk_id, float* vertices, int vertices_length, float* normals, int normals_length, float* uvs, int uvs_length, int* triangle_indicies, int triangle_indicies_length);
+    typedef void(*FuncMeshCallback)(size_t chunk_id, float* vertices, size_t vertices_length, float* normals, size_t normals_length, float* uvs, size_t uvs_length, int* triangle_indicies, size_t triangle_indicies_length);
     FuncMeshCallback mesh_callback = nullptr;
 
     typedef void(*FuncCallBack2)(int tracker_id, int localization_delegate); 
@@ -50,7 +53,12 @@ public:
     ID3D11Device* device = nullptr;
     
     bool thread_alive = true;
+
+    bool request_new_chunks = true;
+    bool stop_spacial_mapping = false;
     bool start_spacial_mapping = false;
+
+    float camera_position[6] = { 0, 0, 0, 0, 0, 0 };
 
     TrackerObject(FuncCallBack callback);
 
@@ -64,4 +72,7 @@ private:
     sl::PositionalTrackingParameters configure_positional_tracking_parameters(bool enable_pose_smoothing, sl::POSITIONAL_TRACKING_MODE mode);
     sl::InitParameters configure_init_parameters(sl::RESOLUTION resolution, sl::FLIP_MODE flip, sl::DEPTH_MODE depth_mode, sl::COORDINATE_SYSTEM coordinate_system, sl::UNIT coordinate_units);
     sl::SpatialMappingParameters configure_spatial_mapping_parameters(float resolution_meter, bool use_chunk_only, float range_meter, bool save_texture, sl::SpatialMappingParameters::SPATIAL_MAP_TYPE map_type);
+
+    void process_camera_position(sl::Camera& zed, sl::POSITIONAL_TRACKING_STATE* tracking_state);
+    void process_spatial_mapping(sl::Camera& zed, chrono::high_resolution_clock::time_point* last_time_stamp);
 };

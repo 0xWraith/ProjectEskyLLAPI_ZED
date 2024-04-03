@@ -16,14 +16,12 @@ extern "C" {
     TrackerObject* to = nullptr;
     ID3D11Device* device = nullptr;
     std::thread* trackerThreadPtr = nullptr;
-    
-    DLL_EXPORT void SaveOriginPose() {
-        Debug::Log("Saving Origin Pose");
-    }
 
     DLL_EXPORT float* GetLatestPose() {
-        Debug::Log("Getting Latest Pose");
-        return nullptr;
+        std::stringstream ss;
+        ss << "Getting Latest Pose: " << (to == nullptr ? " Tracker Object is Null" : " Tracker Object is not Null");
+        Debug::Log(ss.str().c_str());
+        return to == nullptr ? new float[6] {0, 0, 0, 0, 0, 0} : to->camera_position;
     }
 
     DLL_EXPORT void InitializeTrackerObject() {
@@ -46,7 +44,6 @@ extern "C" {
 
     DLL_EXPORT void StopTrackers() {
         Debug::Log("Stopping Trackers");
-
         if (to != nullptr) {
             to->thread_alive = false;
             if (trackerThreadPtr != nullptr) {
@@ -90,11 +87,21 @@ extern "C" {
     DLL_EXPORT void StartSpatialMapping(int chunk_sizes) {
         Debug::Log("Starting Spatial Mapping");
         std::cout << "Arguments: " << chunk_sizes << std::endl;
+        if (to == nullptr) {
+            Debug::Log("StartSpatialMapping: Tracker hasn't been initialized");
+            return;
+        }
+        to->start_spacial_mapping = true;
     }
 
     DLL_EXPORT void StopSpatialMapping(int chunk_sizes) {
         Debug::Log("Stopping Spatial Mapping");
         std::cout << "Arguments: " << chunk_sizes << std::endl;
+        if (to == nullptr) {
+            Debug::Log("StopSpatialMapping: Tracker hasn't been initialized");
+            return;
+        }
+        to->stop_spacial_mapping = true;
     }
 
     DLL_EXPORT void SetRenderTexturePointer(void* texture_handle) {
@@ -103,6 +110,11 @@ extern "C" {
 
     DLL_EXPORT void CompletedMeshUpdate() {
         Debug::Log("Completed Mesh Update");
+        if (to == nullptr) {
+            Debug::Log("CompletedMeshUpdate: Tracker hasn't been initialized");
+            return;
+        }
+        to->request_new_chunks = true;
     }
 
     DLL_EXPORT void RegisterDebugCallback(FuncCallBack cb);
