@@ -49,37 +49,8 @@ public:
     
     bool shouldStartSpatialMapping = false;
     bool shouldStopSpatialMapping = false;
-    std::vector<uint8_t> bytes_from_raw_file(const std::string& filename)
-    {
-        std::ifstream file(filename.c_str(), std::ios::binary);
-        if (!file.good())
-            throw std::runtime_error("Invalid binary file specified. Verify the source path and location permissions");
-
-        // Determine the file length
-        file.seekg(0, std::ios_base::end);
-        std::size_t size = file.tellg();
-        if (!size)
-            throw std::runtime_error("Invalid binary file -zero-size");
-        file.seekg(0, std::ios_base::beg);
-
-        // Create a vector to store the data
-        std::vector<uint8_t> v(size);
-
-        // Load the data
-        file.read((char*)&v[0], size);
-
-        return v;
-    }
-
     bool ExitThreadLoop = false;
-    void raw_file_from_bytes(const std::string& filename, const std::vector<uint8_t> bytes)
-    {
-        std::ofstream file(filename, std::ios::binary | std::ios::trunc);
-        if (!file.good()) {
-            Debug::Log("Invalid binary file specified. Verify the target path and location permissions");
-        }
-        file.write((char*)bytes.data(), bytes.size());
-    }
+
 
     // Create a configuration for configuring the pipeline with a non default profile
 

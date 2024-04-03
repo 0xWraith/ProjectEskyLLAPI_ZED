@@ -12,6 +12,7 @@
 #include <queue>
 #include <map>
 #include <set>
+#include <iostream>
 #define Math_PI 3.14159265
 using namespace std;
 // Some useful defines
@@ -33,6 +34,7 @@ private:
     static void send_log(const std::stringstream& ss, const Color& color) {
         const std::string tmp = ss.str();
         const char* tmsg = tmp.c_str();
+        std::cout << "[DLL output]: " << tmsg << std::endl;
         if (callbackInstance != nullptr)
             callbackInstance(tmsg, (int)color, (int)strlen(tmsg));
     }

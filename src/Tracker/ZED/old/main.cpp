@@ -88,7 +88,6 @@ extern "C" {
     typedef void(*FuncCallBack2)(int LocalizationDelegate);
     typedef void(*FuncCallBack3)(unsigned char* binaryData,int Length);
     typedef void(*FuncCallBack4)(string ObjectID, float tx, float ty, float tz, float qx, float qy, float qz, float qw);
-    DLL_EXPORT void RegisterDebugCallback(FuncCallBack cb);
     DLL_EXPORT void RegisterLocalizationCallback(FuncCallBack2 cb);
     DLL_EXPORT void RegisterBinaryMapCallback(FuncCallBack3 cb);
     DLL_EXPORT void RegisterObjectPoseCallback(FuncCallBack4 cb);

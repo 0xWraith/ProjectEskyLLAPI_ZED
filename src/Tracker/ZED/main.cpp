@@ -8,112 +8,106 @@
 
 #define DLL_EXPORT __declspec(dllexport)
 
+void trackerThread(bool use_localization);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+    TrackerObject* to = nullptr;
+    ID3D11Device* device = nullptr;
+    std::thread* trackerThreadPtr = nullptr;
+    
     DLL_EXPORT void SaveOriginPose() {
         Debug::Log("Saving Origin Pose");
-        std::cout << "Saving Origin Pose" << std::endl;
     }
 
     DLL_EXPORT float* GetLatestPose() {
         Debug::Log("Getting Latest Pose");
-        std::cout << "Getting Latest Pose" << std::endl;
         return nullptr;
     }
 
     DLL_EXPORT void InitializeTrackerObject() {
         Debug::Log("Initializing Tracker Object");
-        std::cout << "Initializing Tracker Object" << std::endl;
+        if (to == nullptr) {
+            to = new TrackerObject(callbackInstance);
+            Debug::Log("Tracker Object Initialized");
+        }
     }
 
-    DLL_EXPORT void StartTrackerThread(bool useLocalization) {
+    DLL_EXPORT void StartTrackerThread(bool use_localization) {
         Debug::Log("Starting Tracker Thread");
-        std::cout << "Starting Tracker Thread" << std::endl;
-        std::cout << "Arguments: " << useLocalization << std::endl;
+        std::cout << "Arguments: " << use_localization << std::endl;
+        if (to == nullptr) {
+            Debug::Log("StartTrackerThread: Tracker hasn't been initialized");
+            return;
+        }
+        trackerThreadPtr = new std::thread(trackerThread, use_localization);
     }
 
     DLL_EXPORT void StopTrackers() {
         Debug::Log("Stopping Trackers");
-        std::cout << "Stopping Trackers" << std::endl;
     }
 
-    DLL_EXPORT void SetObjectPoseInLocalizedMap(const char* objectID, float tx, float ty, float tz, float qx, float qy, float qz, float qw) {
+    DLL_EXPORT void SetObjectPoseInLocalizedMap(const char* object_id, float tx, float ty, float tz, float qx, float qy, float qz, float qw) {
         Debug::Log("Setting Object Pose In Localized Map");
-        std::cout << "Setting Object Pose In Localized Map" << std::endl;
-        std::cout << "Arguments: " << objectID << " " << tx << " " << ty << " " << tz << " " << qx << " " << qy << " " << qz << " " << qw << std::endl;
+        std::cout << "Arguments: " << object_id << " " << tx << " " << ty << " " << tz << " " << qx << " " << qy << " " << qz << " " << qw << std::endl;
     }
 
-    DLL_EXPORT void ObtainObjectPoseInLocalizedMap(const char* objectID) {
+    DLL_EXPORT void ObtainObjectPoseInLocalizedMap(const char* object_id) {
         Debug::Log("Obtaining Object Pose In Localized Map");
-        std::cout << "Obtaining Object Pose In Localized Map" << std::endl;
-        std::cout << "Arguments: " << objectID << std::endl;
+        std::cout << "Arguments: " << object_id << std::endl;
     }
 
     DLL_EXPORT void ObtainMap() {
         Debug::Log("Obtaining Map");
-        std::cout << "Obtaining Map" << std::endl;
     }
 
     DLL_EXPORT void HookDeviceToZed() {
         Debug::Log("Hooking Device To Zed");
-        std::cout << "Hooking Device To Zed" << std::endl;
     }
 
     DLL_EXPORT void SetTextureInitializedCallback(TrackerObject::FuncTextureInitializedCallback callback) {
         Debug::Log("Setting Texture Initialized Callback");
-        std::cout << "Setting Texture Initialized Callback" << std::endl;
     }
 
     DLL_EXPORT void RegisterMeshCompleteCallback(TrackerObject::FuncMeshCompleteCallback callback) { 
         Debug::Log("Registering Mesh Complete Callback");
-        std::cout << "Registering Mesh Complete Callback" << std::endl;
     }
     
-    DLL_EXPORT void RegisterMeshCallback(TrackerObject::FuncMeshCallback myCallback) {
+    DLL_EXPORT void RegisterMeshCallback(TrackerObject::FuncMeshCallback my_callback) {
         Debug::Log("Registering Mesh Callback");
-        std::cout << "Registering Mesh Callback" << std::endl;
     }
 
-    DLL_EXPORT void SetMapData(unsigned char* inputData, int Length) {
+    DLL_EXPORT void SetMapData(unsigned char* input_data, int Length) {
         Debug::Log("Setting Map Data");
-        std::cout << "Setting Map Data" << std::endl;
     }
 
-    DLL_EXPORT void StartSpatialMapping(int chunkSizes) {
+    DLL_EXPORT void StartSpatialMapping(int chunk_sizes) {
         Debug::Log("Starting Spatial Mapping");
-        std::cout << "Starting Spatial Mapping" << std::endl;
-        std::cout << "Arguments: " << chunkSizes << std::endl;
+        std::cout << "Arguments: " << chunk_sizes << std::endl;
     }
 
-    DLL_EXPORT void StopSpatialMapping(int chunkSizes) {
+    DLL_EXPORT void StopSpatialMapping(int chunk_sizes) {
         Debug::Log("Stopping Spatial Mapping");
-        std::cout << "Stopping Spatial Mapping" << std::endl;
-        std::cout << "Arguments: " << chunkSizes << std::endl;
+        std::cout << "Arguments: " << chunk_sizes << std::endl;
     }
 
-    DLL_EXPORT void SetRenderTexturePointer(void* textureHandle) {
+    DLL_EXPORT void SetRenderTexturePointer(void* texture_handle) {
         Debug::Log("Setting Render Texture Pointer");
-        std::cout << "Setting Render Texture Pointer" << std::endl;
     }
 
     DLL_EXPORT void CompletedMeshUpdate() {
         Debug::Log("Completed Mesh Update");
-        std::cout << "Completed Mesh Update" << std::endl;
     }
 
     DLL_EXPORT void RegisterDebugCallback(FuncCallBack cb);
     DLL_EXPORT void RegisterBinaryMapCallback(TrackerObject::FuncCallBack3 cb);
     DLL_EXPORT void RegisterObjectPoseCallback(TrackerObject::FuncCallBack4 cb);
     DLL_EXPORT void RegisterLocalizationCallback(TrackerObject::FuncCallBack2 cb);
-
-
 }
 
-static void UNITY_INTERFACE_API OnRenderEvent(int eventID) {
+static void UNITY_INTERFACE_API OnRenderEvent(int event_id) {
     Debug::Log("On Render Event");
-    std::cout << "On Render Event" << std::endl;
 }
 
 extern "C" UnityRenderingEvent UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetRenderEventFunc() {
@@ -124,21 +118,44 @@ extern "C" UnityRenderingEvent UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetRen
 
 void RegisterDebugCallback(FuncCallBack cb) { 
     Debug::Log("Registering Debug Callback");
-    std::cout << "Registering Debug Callback" << std::endl;
-    
     callbackInstance = cb;
 }
 
-void RegisterLocalizationCallback(TrackerObject::FuncCallBack2 cb) {
+void RegisterLocalizationCallback(TrackerObject::FuncCallBack2 callback) {
     Debug::Log("Registering Localization Callback");
-    std::cout << "Registering Localization Callback" << std::endl;
-}
-void RegisterBinaryMapCallback(TrackerObject::FuncCallBack3 cb) {
-    Debug::Log("Registering Binary Map Callback");
-    std::cout << "Registering Binary Map Callback" << std::endl;
+    if (to == nullptr) {
+        Debug::Log("RegisterLocalizationCallback: Tracker hasn't been initialized");
+        return;
+    }
+    to->callback_localization = callback;
 }
 
-void RegisterObjectPoseCallback(TrackerObject::FuncCallBack4 cb) {
+void RegisterBinaryMapCallback(TrackerObject::FuncCallBack3 callback) {
+    Debug::Log("Registering Binary Map Callback");
+    if (to == nullptr) {
+        Debug::Log("RegisterBinaryMapCallback: Tracker hasn't been initialized");
+        return;
+    }
+    to->callback_binary_map = callback;
+}
+
+void RegisterObjectPoseCallback(TrackerObject::FuncCallBack4 callback) {
     Debug::Log("Registering Object Pose Callback");
-    std::cout << "Registering Object Pose Callback" << std::endl;
+    if (to == nullptr) {
+        Debug::Log("RegisterObjectPoseCallback: Tracker hasn't been initialized");
+        return;
+    }
+    to->callback_object_pose_received = callback;
+}
+
+void trackerThread(bool use_localization) {
+    if (to == nullptr) {
+        Debug::Log("Tracker hasn't been initialized");
+        return;
+    }
+    Debug::Log("Tracker Thread");
+    to->tracking(use_localization);
+    delete to;
+    to = nullptr;
+    Debug::Log("Tracker Thread Finished");
 }
