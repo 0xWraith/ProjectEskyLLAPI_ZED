@@ -27,7 +27,7 @@ if(WIN32)
   set(PROJECT_BINARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/\$\(Configuration\)")
   
   find_package(GLM REQUIRED)
-  include_directories(${GLM_INCLUDE_DIRS})
+  include_directories(${GLM_INCLUDE_DIRS}) 
 
   find_package(ZED 4)
   link_directories(${ZED_LIBRARY_DIR}) 
@@ -58,7 +58,7 @@ if(WIN32)
 
   add_library(libProjectEskyLLAPIZED SHARED
     ./src/Tracker/ZED/main.cpp
-    ./src/Tracker/ZED/Tracker_Zed.cpp
+    ./src/Tracker/ZED/Tracker_ZED.h
     ./src/UnityHooks.def)
   set_source_files_properties(./src/UnityHooks.def PROPERTIES HEADER_FILE_ONLY TRUE)
   set_target_properties(libProjectEskyLLAPIZED PROPERTIES COMPILE_DEFINITIONS BUILDER_STATIC_DEFINE)

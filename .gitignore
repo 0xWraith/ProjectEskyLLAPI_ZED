@@ -40,3 +40,4 @@ bin/
 .vs/ProjectEskyLLAPI
 # src/Tracker/IntelT265
 # src/Tracker/X
+/.vs

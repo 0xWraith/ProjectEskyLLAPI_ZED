@@ -9,10 +9,9 @@
     "",
     "\\src",
     "\\src\\Tracker",
-    "\\src\\Tracker\\IntelT265",
     "\\src\\Tracker\\X",
     "\\src\\Tracker\\ZED"
   ],
-  "SelectedNode": "\\CMakeLists.txt",
+  "SelectedNode": "\\src\\Tracker\\ZED\\main.cpp",
   "PreviewInSolutionExplorer": false
 }
