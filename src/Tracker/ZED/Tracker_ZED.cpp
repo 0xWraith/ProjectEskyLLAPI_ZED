@@ -40,51 +40,55 @@ void TrackerObject::tracking(bool use_localization) {
     
 
 	while (thread_alive) {
-        if (start_spacial_mapping) {
-            start_spacial_mapping = false;
-            sl::SpatialMappingParameters spatial_mapping_params = configure_spatial_mapping_parameters(
-                sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::MAPPING_RESOLUTION::MEDIUM),
-                false,
-                sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::MAPPING_RANGE::MEDIUM),
-                false,
-                sl::SpatialMappingParameters::SPATIAL_MAP_TYPE::MESH);
+        try {
+            if (start_spacial_mapping) {
+                start_spacial_mapping = false;
+                sl::SpatialMappingParameters spatial_mapping_params = configure_spatial_mapping_parameters(
+                    sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::MAPPING_RESOLUTION::MEDIUM),
+                    false,
+                    sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::MAPPING_RANGE::MEDIUM),
+                    false,
+                    sl::SpatialMappingParameters::SPATIAL_MAP_TYPE::MESH);
+                    
+                err = zed.enableSpatialMapping(spatial_mapping_params);
+                if (err != sl::ERROR_CODE::SUCCESS) {
+                    std::stringstream ss;
+                    ss << "Error " << err << ", while enabling spatial mapping";
+                    Debug::Log(ss.str());
+                }
+                else {
+                    spatial_mapping_succesfully_started = true;
+                    Debug::Log("Spatial Mapping Enabled");
+                }
+            }
+            err = zed.grab();
+            if (err == sl::ERROR_CODE::SUCCESS) {
                 
-            err = zed.enableSpatialMapping(spatial_mapping_params);
-            if (err != sl::ERROR_CODE::SUCCESS) {
+                this->process_camera_position(zed, &tracking_state);
+
+                if (spatial_mapping_succesfully_started) {
+                    this->process_spatial_mapping(zed, &last_time_stamp);
+                }
+
+                if (!lock_image) {
+                    this->process_retreived_image(zed);
+                }
+
+                if (grab_map) {
+                    grab_map = false;
+                    zed.saveAreaMap(tracking_params.area_file_path);
+                    std::stringstream ss;
+                    ss << "Asynchronously saving area map to " << tracking_params.area_file_path;
+                    Debug::Log(ss.str());
+                }
+
+            } else {
                 std::stringstream ss;
-                ss << "Error " << err << ", while enabling spatial mapping";
+                ss << "Error " << err << ", while grabbing frame";
                 Debug::Log(ss.str());
             }
-            else {
-                spatial_mapping_succesfully_started = true;
-                Debug::Log("Spatial Mapping Enabled");
-            }
-        }
-        err = zed.grab();
-        if (err == sl::ERROR_CODE::SUCCESS) {
-            
-            this->process_camera_position(zed, &tracking_state);
-
-            if (spatial_mapping_succesfully_started) {
-                this->process_spatial_mapping(zed, &last_time_stamp);
-            }
-
-            if (!lock_image) {
-                this->process_retreived_image(zed);
-            }
-
-            if (grab_map) {
-                grab_map = false;
-                zed.saveAreaMap(tracking_params.area_file_path);
-                std::stringstream ss;
-                ss << "Asynchronously saving area map to " << tracking_params.area_file_path;
-                Debug::Log(ss.str());
-            }
-
-        } else {
-            std::stringstream ss;
-            ss << "Error " << err << ", while grabbing frame";
-            Debug::Log(ss.str());
+        } catch (const std::exception& e) {
+            Debug::Log(e.what());
         }
 	}
     zed.disablePositionalTracking();
