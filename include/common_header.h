@@ -13,6 +13,10 @@
 #include <map>
 #include <set>
 #include <iostream>
+
+//Write to file
+#include <fstream>
+
 #define Math_PI 3.14159265
 using namespace std;
 // Some useful defines
@@ -35,16 +39,30 @@ private:
         const std::string tmp = ss.str();
         const char* tmsg = tmp.c_str();
         std::cout << "[DLL output]: " << tmsg << std::endl;
+
+        std::ofstream logFile;
+        logFile.open("llapi_zed.log", std::ios_base::app);
+        logFile << tmsg << std::endl;
+        logFile.close();
+
         if (callbackInstance != nullptr)
             callbackInstance(tmsg, (int)color, (int)strlen(tmsg));
     }
 public:
     static void Log(const char* message, Color color = Color::Black) {
+        std::ofstream logFile;
+        logFile.open("llapi_zed.log", std::ios_base::app);
+        logFile << message << std::endl;
+        logFile.close();
         if (callbackInstance != nullptr)
             callbackInstance(message, (int)color, (int)strlen(message));
     }
     static void Log(const std::string message, Color color = Color::Black) {
         const char* tmsg = message.c_str();
+        std::ofstream logFile;
+        logFile.open("llapi_zed.log", std::ios_base::app);
+        logFile << tmsg << std::endl;
+        logFile.close();
         if (callbackInstance != nullptr)
             callbackInstance(tmsg, (int)color, (int)strlen(tmsg));
     }
