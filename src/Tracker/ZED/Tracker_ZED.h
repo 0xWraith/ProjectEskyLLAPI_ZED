@@ -65,6 +65,7 @@ public:
     void stopTracking();
     void tracking(bool use_localization);
     void update_camera_texture_gpu();
+    void process_grab_map();
 
 private: 
     int texture_width = 0;
@@ -72,6 +73,7 @@ private:
     int texture_channels = 0;
     sl::Mat current_image;
 
+    bool grab_map = false;
     bool spatial_mapping_succesfully_started = false;
 
     sl::PositionalTrackingParameters configure_positional_tracking_parameters(bool enable_pose_smoothing, sl::POSITIONAL_TRACKING_MODE mode);

@@ -73,7 +73,13 @@ void TrackerObject::tracking(bool use_localization) {
                 this->process_retreived_image(zed);
             }
 
-
+            if (grab_map) {
+                grab_map = false;
+                zed.saveAreaMap(tracking_params.area_file_path);
+                std::stringstream ss;
+                ss << "Asynchronously saving area map to " << tracking_params.area_file_path;
+                Debug::Log(ss.str());
+            }
 
         } else {
             std::stringstream ss;
@@ -81,6 +87,10 @@ void TrackerObject::tracking(bool use_localization) {
             Debug::Log(ss.str());
         }
 	}
+    zed.disablePositionalTracking();
+    zed.disableSpatialMapping();
+    zed.close();
+    Debug::Log("ZED Camera Closed");
 }
 
 sl::InitParameters TrackerObject::configure_init_parameters(sl::RESOLUTION resolution, sl::FLIP_MODE flip, sl::DEPTH_MODE depth_mode, sl::COORDINATE_SYSTEM coordinate_system, sl::UNIT coordinate_units) {
@@ -102,7 +112,7 @@ sl::PositionalTrackingParameters TrackerObject::configure_positional_tracking_pa
 	sl::PositionalTrackingParameters parameters;
 	parameters.enable_pose_smoothing = enable_pose_smoothing;
 	parameters.mode = mode;
-	parameters.area_file_path = "zed_area_file.area";
+	parameters.area_file_path = "temp.raw.area";
 	return parameters;
 }
 
@@ -139,6 +149,10 @@ void TrackerObject::process_camera_position(sl::Camera& zed, sl::POSITIONAL_TRAC
     this->camera_position[3] = camera_euler_angles.x;
     this->camera_position[4] = camera_euler_angles.y;
     this->camera_position[5] = camera_euler_angles.z;
+
+    std::stringstream ss;
+    ss << "Camera Position: " << camera_translation.x << ", " << camera_translation.y << ", " << camera_translation.z << " | " << camera_euler_angles.x << ", " << camera_euler_angles.y << ", " << camera_euler_angles.z;
+    Debug::Log(ss.str());
 }
 
 void TrackerObject::process_spatial_mapping(sl::Camera& zed, chrono::high_resolution_clock::time_point* last_time_stamp) {
@@ -265,4 +279,11 @@ void TrackerObject::update_camera_texture_gpu() {
     context->UpdateSubresource(d3d_texture, 0, NULL, current_image.getPtr<sl::uchar1>(), texture_width * texture_channels, 0);
     lock_image = false;
     context->Release();
+}
+
+void TrackerObject::process_grab_map() {
+    if (callback_binary_map != nullptr) {
+        Debug::Log("Will try to grab map");
+        grab_map = true;
+    }
 }

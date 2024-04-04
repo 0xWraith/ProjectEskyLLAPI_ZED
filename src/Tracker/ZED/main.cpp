@@ -65,6 +65,11 @@ extern "C" {
 
     DLL_EXPORT void ObtainMap() {
         Debug::Log("Obtaining Map");
+        if (to == nullptr) {
+            Debug::Log("ObtainMap: Tracker hasn't been initialized");
+            return;
+        }
+        to->process_grab_map();
     }
 
     DLL_EXPORT void HookDeviceToZed() {
