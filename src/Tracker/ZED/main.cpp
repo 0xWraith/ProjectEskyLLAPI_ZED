@@ -6,6 +6,8 @@
 #include "stb_image.h"
 #include "Tracker_ZED.h" 
 
+#include <sstream>
+
 #define DLL_EXPORT __declspec(dllexport)
 
 void trackerThread(bool use_localization);
@@ -166,8 +168,8 @@ extern "C" {
         graphics->UnregisterDeviceEventCallback(OnGraphicsDeviceEvent);
     }
 
-    extern "C" void	UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces * unity_interfaces) {
-        unity_interfaces = unity_interfaces;
+    extern "C" void	UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces* _unity_interfaces) {
+        unity_interfaces = _unity_interfaces;
         graphics = unity_interfaces->Get<IUnityGraphics>();
         graphics->RegisterDeviceEventCallback(OnGraphicsDeviceEvent); 
         OnGraphicsDeviceEvent(kUnityGfxDeviceEventInitialize);
