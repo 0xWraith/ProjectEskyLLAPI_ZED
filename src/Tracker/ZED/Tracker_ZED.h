@@ -29,7 +29,7 @@ public:
 
     static const int REQUEST_CHUNKS_TIME_INTERVAL = 2000;
 
-    typedef void(*FuncTextureInitializedCallback)(int texture_width, int texture_height, int texture_channels, float v_fov);
+    typedef void(*FuncTextureInitializedCallback)(size_t texture_width, size_t texture_height, size_t texture_channels, float v_fov);
     FuncTextureInitializedCallback texture_initialized_callback = nullptr;
     
     typedef void(*FuncMeshCompleteCallback)();
@@ -61,6 +61,7 @@ public:
     float camera_position[6] = { 0, 0, 0, 0, 0, 0 };
 
     TrackerObject(FuncCallBack callback);
+    ~TrackerObject();
 
     void stopTracking();
     void tracking(bool use_localization);
@@ -68,9 +69,9 @@ public:
     void process_grab_map();
 
 private: 
-    int texture_width = 0;
-    int texture_height = 0;
-    int texture_channels = 0;
+    size_t texture_width = 0;
+    size_t texture_height = 0;
+    size_t texture_channels = 0;
     sl::Mat current_image;
 
     bool grab_map = false;
@@ -79,6 +80,8 @@ private:
     sl::PositionalTrackingParameters configure_positional_tracking_parameters(bool enable_pose_smoothing, sl::POSITIONAL_TRACKING_MODE mode);
     sl::InitParameters configure_init_parameters(sl::RESOLUTION resolution, sl::FLIP_MODE flip, sl::DEPTH_MODE depth_mode, sl::COORDINATE_SYSTEM coordinate_system, sl::UNIT coordinate_units);
     sl::SpatialMappingParameters configure_spatial_mapping_parameters(float resolution_meter, bool use_chunk_only, float range_meter, bool save_texture, sl::SpatialMappingParameters::SPATIAL_MAP_TYPE map_type);
+
+    bool file_exist(const char* fileName);
 
     void process_retreived_image(sl::Camera& zed);
     void process_camera_position(sl::Camera& zed, sl::POSITIONAL_TRACKING_STATE* tracking_state);

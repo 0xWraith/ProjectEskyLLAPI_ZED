@@ -5,6 +5,10 @@ TrackerObject::TrackerObject(FuncCallBack _callback) {
 	callbackInstance = _callback;
 }
 
+TrackerObject::~TrackerObject() {
+
+}
+
 void TrackerObject::stopTracking() {
 
 }
@@ -15,7 +19,7 @@ void TrackerObject::tracking(bool use_localization) {
     sl::POSITIONAL_TRACKING_STATE tracking_state = sl::POSITIONAL_TRACKING_STATE::OFF;
 
 	sl::InitParameters init_params = configure_init_parameters(sl::RESOLUTION::HD720, sl::FLIP_MODE::AUTO, sl::DEPTH_MODE::PERFORMANCE, sl::COORDINATE_SYSTEM::LEFT_HANDED_Y_UP, sl::UNIT::METER);
-	sl::ERROR_CODE err = zed.open(init_params);
+    sl::ERROR_CODE err = zed.open(init_params);
 
 	if (err != sl::ERROR_CODE::SUCCESS) {
         std::stringstream ss;
@@ -38,7 +42,6 @@ void TrackerObject::tracking(bool use_localization) {
 
     chrono::high_resolution_clock::time_point last_time_stamp = chrono::high_resolution_clock::now();
     
-
 	while (thread_alive) {
         try {
             if (start_spacial_mapping) {
@@ -63,9 +66,7 @@ void TrackerObject::tracking(bool use_localization) {
             }
             err = zed.grab();
             if (err == sl::ERROR_CODE::SUCCESS) {
-                
                 this->process_camera_position(zed, &tracking_state);
-
                 if (spatial_mapping_succesfully_started) {
                     this->process_spatial_mapping(zed, &last_time_stamp);
                 }
@@ -116,7 +117,14 @@ sl::PositionalTrackingParameters TrackerObject::configure_positional_tracking_pa
 	sl::PositionalTrackingParameters parameters;
 	parameters.enable_pose_smoothing = enable_pose_smoothing;
 	parameters.mode = mode;
-	parameters.area_file_path = "temp.raw.area";
+
+    if (file_exist("temp.raw.area")) {
+		Debug::Log("Area file found, loading area file");
+        parameters.area_file_path = "temp.raw.area";
+	}
+    else {
+		Debug::Log("Area file not found, creating new area file");
+	}
 	return parameters;
 }
 
@@ -137,12 +145,9 @@ void TrackerObject::process_camera_position(sl::Camera& zed, sl::POSITIONAL_TRAC
     sl::POSITIONAL_TRACKING_STATE current_tracking_state = zed.getPosition(camera_position, sl::REFERENCE_FRAME::WORLD);
     if (current_tracking_state != *tracking_state) {
         *tracking_state = current_tracking_state;
-        if (*tracking_state == sl::POSITIONAL_TRACKING_STATE::OK) {
+        if (*tracking_state == sl::POSITIONAL_TRACKING_STATE::OK && callback_localization != nullptr) {
             callback_localization(0, 1);
         }
-        std::stringstream ss;
-        ss << "Tracking state: " << *tracking_state;
-        Debug::Log(ss.str());
     } //????
     sl::Translation camera_translation = camera_position.getTranslation();
     sl::float3 camera_euler_angles = camera_position.getEulerAngles();
@@ -290,4 +295,9 @@ void TrackerObject::process_grab_map() {
         Debug::Log("Will try to grab map");
         grab_map = true;
     }
+}
+
+bool TrackerObject::file_exist(const char* fileName) {
+    std::ifstream infile(fileName);
+    return infile.good();
 }

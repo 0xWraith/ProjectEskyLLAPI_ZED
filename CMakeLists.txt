@@ -37,9 +37,9 @@ if(WIN32)
   find_package(CUDA ${ZED_CUDA_VERSION} EXACT) 
   include_directories(${CUDA_INCLUDE_DIRS})
 
-  find_package( xvsdk REQUIRED )
-  set(xvsdk_INCLUDE ${xvsdk_INCLUDE_DIRS}xvsdk)
-  include_directories( ${xvsdk_INCLUDE} )
+  #find_package( xvsdk REQUIRED )
+  #set(xvsdk_INCLUDE ${xvsdk_INCLUDE_DIRS}xvsdk)
+  #include_directories( ${xvsdk_INCLUDE} )
 
 # includes
   include_directories(${ADDITIONAL_INCLUDE_DIRS})
@@ -49,12 +49,12 @@ if(WIN32)
  
   set(CMAKE_EXE_LINKER_FLAGS "-static")
 
-  add_library(libProjectEskyLLAPIX SHARED
-    ./src/Tracker/X/main.cpp
-    ./src/Tracker/X/Tracker.h
-    ./include/DollaryDooFilter.h)
-  set_target_properties(libProjectEskyLLAPIX PROPERTIES COMPILE_DEFINITIONS BUILDER_STATIC_DEFINE)
-  target_link_libraries(libProjectEskyLLAPIX ${DEPENDENCIES} ${xvsdk_LIBRARIES})
+  #add_library(libProjectEskyLLAPIX SHARED
+   # ./src/Tracker/X/main.cpp
+    #./src/Tracker/X/Tracker.h
+    #./include/DollaryDooFilter.h)
+  #set_target_properties(libProjectEskyLLAPIX PROPERTIES COMPILE_DEFINITIONS BUILDER_STATIC_DEFINE)
+  #target_link_libraries(libProjectEskyLLAPIX ${DEPENDENCIES} ${xvsdk_LIBRARIES})
 
   add_library(libProjectEskyLLAPIZED SHARED
     ./src/Tracker/ZED/main.cpp
