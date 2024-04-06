@@ -41,3 +41,5 @@ bin/
 # src/Tracker/IntelT265
 # src/Tracker/X
 /.vs
+/.vs
+/.vscode
