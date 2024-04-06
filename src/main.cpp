@@ -17,7 +17,7 @@ extern "C" {
 #endif
     TrackerObject* to = nullptr;
     ID3D11Device* device = nullptr;
-    std::thread* trackerThreadPtr = nullptr;
+    std::thread* tracker_thread = nullptr;
 
     static IUnityGraphics* graphics = NULL;
     static IUnityInterfaces* unity_interfaces = NULL;
@@ -44,24 +44,25 @@ extern "C" {
             Debug::Log("StartTrackerThread: Tracker hasn't been initialized");
             return;
         }
-        trackerThreadPtr = new std::thread(trackerThread, use_localization);    
+        tracker_thread = new std::thread(trackerThread, use_localization);
     }
 
     DLL_EXPORT void StopTrackers() {
         Debug::Log("Stopping Trackers");
-        if (to != nullptr) {
-            to->thread_alive = false;
-            if (trackerThreadPtr != nullptr) {
-                trackerThreadPtr->join();
-                delete trackerThreadPtr;
-                trackerThreadPtr = nullptr;
-                Debug::Log("Tracker Thread Stopped");
-            }
-            else {
-                Debug::Log("Tracker Thread Pointer is Null");
-            }
-        } else {
-            Debug::Log("Tracker Object is Null");
+
+        if (to == nullptr) {
+			Debug::Log("Tracker hasn't been initialized");
+			return;
+		}
+        to->thread_alive = false;
+        if (tracker_thread != nullptr) {
+            tracker_thread->join();
+            delete tracker_thread;
+            tracker_thread = nullptr;
+            Debug::Log("Tracker Thread Stopped");
+        }
+        else {
+            Debug::Log("Tracker Thread Pointer is Null");
         }
     }
 
