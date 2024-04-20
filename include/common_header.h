@@ -39,30 +39,29 @@ private:
         const std::string tmp = ss.str();
         const char* tmsg = tmp.c_str();
 
-        std::cout << tmsg << std::endl;
-
-        std::fstream file;
-        file.open("log.txt", std::ios::app);
-        file << tmsg << std::endl;
+        //std::cout << tmsg << std::endl;
+        //std::fstream file;
+        //file.open("log.txt", std::ios::app);
+        //file << tmsg << std::endl;
 
         if (callbackInstance != nullptr)
             callbackInstance(tmsg, (int)color, (int)strlen(tmsg));
     }
 public:
     static void Log(const char* message, Color color = Color::Black) {
-        std::cout << message << std::endl;
-        std::fstream file;
-        file.open("log.txt", std::ios::app);
-        file << message << std::endl;
+        //std::cout << message << std::endl;
+        //std::fstream file;
+        //file.open("log.txt", std::ios::app);
+        //file << message << std::endl;
         if (callbackInstance != nullptr)
             callbackInstance(message, (int)color, (int)strlen(message));
     }
     static void Log(const std::string message, Color color = Color::Black) {
         const char* tmsg = message.c_str();
-        std::cout << tmsg << std::endl;
-        std::fstream file;
-        file.open("log.txt", std::ios::app);
-        file << tmsg << std::endl;
+        //std::cout << tmsg << std::endl;
+        //std::fstream file;
+        //file.open("log.txt", std::ios::app);
+        //file << tmsg << std::endl;
         if (callbackInstance != nullptr)
             callbackInstance(tmsg, (int)color, (int)strlen(tmsg));
     }

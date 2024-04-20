@@ -8,6 +8,7 @@
 
 #include <sstream>
 
+
 #define DLL_EXPORT __declspec(dllexport)
 
 void trackerThread(bool use_localization);
@@ -23,9 +24,6 @@ extern "C" {
     static IUnityInterfaces* unity_interfaces = NULL;
 
     DLL_EXPORT float* GetLatestPose() {
-        std::stringstream ss;
-        ss << "Getting Latest Pose: " << (to == nullptr ? " Tracker Object is Null" : " Tracker Object is not Null");
-        Debug::Log(ss.str().c_str());
         return to == nullptr ? new float[6] {0, 0, 0, 0, 0, 0} : to->camera_position;
     }
 
@@ -122,7 +120,7 @@ extern "C" {
             Debug::Log("StartSpatialMapping: Tracker hasn't been initialized");
             return;
         }
-        to->start_spacial_mapping = true;
+        to->start_spacial_mapping = true; 
     }
 
     DLL_EXPORT void StopSpatialMapping(int chunk_sizes) {
@@ -176,6 +174,19 @@ extern "C" {
         OnGraphicsDeviceEvent(kUnityGfxDeviceEventInitialize);
     }
 
+    DLL_EXPORT void WriteSpationalMappingParameters(float resolution, float range) {
+		Debug::Log("Writing Spational Mapping Parameters");
+        if (to == nullptr) {
+			Debug::Log("WriteSpationalMappingParameters: Tracker hasn't been initialized");
+			return;
+		}
+        to->spatial_mapping_range = range;
+        to->spatial_mapping_resolution = resolution;
+        std::stringstream ss;
+        ss << "Mapping Resolution: " << resolution << " Mapping Range: " << range;
+        Debug::Log(ss.str().c_str());
+	}
+
     DLL_EXPORT void RegisterDebugCallback(FuncCallBack cb);
     DLL_EXPORT void RegisterBinaryMapCallback(TrackerObject::FuncCallBack3 cb);
     DLL_EXPORT void RegisterObjectPoseCallback(TrackerObject::FuncCallBack4 cb);
@@ -183,15 +194,12 @@ extern "C" {
 }
 
 static void UNITY_INTERFACE_API OnRenderEvent(int event_id) {
-    Debug::Log("On Render Event");
     if (to != nullptr) {
         to->update_camera_texture_gpu();
     }
 }
 
 extern "C" UnityRenderingEvent UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetRenderEventFunc() {
-    Debug::Log("Getting Render Event Function");
-    std::cout << "Getting Render Event Function" << std::endl;
     return OnRenderEvent;
 }
 

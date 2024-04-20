@@ -27,7 +27,7 @@
 class TrackerObject {
 public:
 
-    static const int REQUEST_CHUNKS_TIME_INTERVAL = 2000;
+    static const int REQUEST_CHUNKS_TIME_INTERVAL = 100;
 
     typedef void(*FuncTextureInitializedCallback)(size_t texture_width, size_t texture_height, size_t texture_channels, float v_fov);
     FuncTextureInitializedCallback texture_initialized_callback = nullptr;
@@ -57,6 +57,9 @@ public:
     bool start_spacial_mapping = false;
 
     bool lock_image = false;
+
+    float spatial_mapping_range = 1.0f;
+    float spatial_mapping_resolution = 0.08f;
 
     float camera_position[6] = { 0, 0, 0, 0, 0, 0 };
 

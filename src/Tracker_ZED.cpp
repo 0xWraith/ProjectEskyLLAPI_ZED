@@ -47,9 +47,9 @@ void TrackerObject::tracking(bool use_localization) {
             if (start_spacial_mapping) {
                 start_spacial_mapping = false;
                 sl::SpatialMappingParameters spatial_mapping_params = configure_spatial_mapping_parameters(
-                    sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::MAPPING_RESOLUTION::MEDIUM),
+                    sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::MAPPING_RESOLUTION::LOW),
                     false,
-                    sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::MAPPING_RANGE::MEDIUM),
+                    1.0,
                     false,
                     sl::SpatialMappingParameters::SPATIAL_MAP_TYPE::MESH);
                     
@@ -159,9 +159,9 @@ void TrackerObject::process_camera_position(sl::Camera& zed, sl::POSITIONAL_TRAC
     this->camera_position[4] = camera_euler_angles.y;
     this->camera_position[5] = camera_euler_angles.z;
 
-    std::stringstream ss;
-    ss << "Camera Position: " << camera_translation.x << ", " << camera_translation.y << ", " << camera_translation.z << " | " << camera_euler_angles.x << ", " << camera_euler_angles.y << ", " << camera_euler_angles.z;
-    Debug::Log(ss.str());
+    //std::stringstream ss;
+    //ss << "Camera Position: " << camera_translation.x << ", " << camera_translation.y << ", " << camera_translation.z << " | " << camera_euler_angles.x << ", " << camera_euler_angles.y << ", " << camera_euler_angles.z;
+    //Debug::Log(ss.str());
 }
 
 void TrackerObject::process_spatial_mapping(sl::Camera& zed, chrono::high_resolution_clock::time_point* last_time_stamp) {
@@ -177,12 +177,11 @@ void TrackerObject::process_spatial_mapping(sl::Camera& zed, chrono::high_resolu
         std::stringstream ss;
         ss << "Error " << mapping_state << ", while spatial mapping";
         Debug::Log(ss.str());
+        stop_spacial_mapping = spatial_mapping_succesfully_started = false;
     } else {
         if (mapping_state == sl::SPATIAL_MAPPING_STATE::INITIALIZING) {
             Debug::Log("Spatial Mapping Initializing");
         } else if (mapping_state == sl::SPATIAL_MAPPING_STATE::OK) {
-            Debug::Log("Spatial Mapping OK");
-
             auto now = chrono::high_resolution_clock::now();
             auto time_interval = chrono::duration_cast<chrono::milliseconds>(now - *last_time_stamp).count();
 
@@ -190,55 +189,59 @@ void TrackerObject::process_spatial_mapping(sl::Camera& zed, chrono::high_resolu
                 *last_time_stamp = now;
                 request_new_chunks = false;
                 zed.requestSpatialMapAsync();
+                std::cout << "Requesting Spatial Map" << std::endl;
             }
             if (zed.getSpatialMapRequestStatusAsync() != sl::ERROR_CODE::SUCCESS) {
-                Debug::Log("Error while requesting spatial map");
                 return;
             }
             if (mesh_callback != nullptr && mesh_complete_callback != nullptr) {
                 sl::Mesh map;
                 sl::ERROR_CODE err = zed.retrieveSpatialMapAsync(map);
                 if (err != sl::ERROR_CODE::SUCCESS) {
-                    std::stringstream ss;
-                    ss << "Error " << err << ", while retrieving spatial map";
-                    Debug::Log(ss.str());
                     return;
                 }
                 Debug::Log("Spatial Map Retrieved, chunk count: " + std::to_string(map.chunks.size()));
 
-                std::vector<float> uvs;
                 std::vector<float> normals;
                 std::vector<float> vertices;
-                std::vector<int> triangle_indicies;
+                std::vector<int> triangle_indicies; 
+                std::vector<float> uvs;
 
                 for (size_t i = 0, size = map.chunks.size(); i < size; i++) {
                     sl::Chunk chunk = map.chunks[i];
-                    for (size_t j = 0, size = chunk.vertices.size(); j < size; j++) {
+         
+                    for (int j = 0; j < map.chunks[i].vertices.size(); j++) {
                         sl::float3 vertex = chunk.vertices[j];
                         vertices.push_back(vertex.x);
                         vertices.push_back(vertex.y);
                         vertices.push_back(vertex.z);
                     }
-                    for (size_t j = 0, size = chunk.triangles.size(); j < size; j++) {
-                        sl::uint3 triangle = chunk.triangles[j];
-                        triangle_indicies.push_back(triangle.x);
-                        triangle_indicies.push_back(triangle.y);
-                        triangle_indicies.push_back(triangle.z);
-                    }
-                    for (size_t j = 0, size = chunk.normals.size(); j < size; j++) {
+                    for (int j = 0; j < map.chunks[i].normals.size(); j++) {
                         sl::float3 normal = chunk.normals[j];
                         normals.push_back(normal.x);
                         normals.push_back(normal.y);
                         normals.push_back(normal.z);
                     }
-                    for (size_t j = 0, size = chunk.uv.size(); j < size; j++) {
-                        sl::float2 uv = chunk.uv[j];
-                        uvs.push_back(uv.x);
-                        uvs.push_back(uv.y);
+                    for (int j = 0; j < map.chunks[i].uv.size(); j++) {
+                        normals.push_back(map.chunks[i].uv[j].x);
+                        normals.push_back(map.chunks[i].uv[j].y);
+                        uvs.push_back(map.chunks[i].uv[j].x);
+                        uvs.push_back(map.chunks[i].uv[j].y);
                     }
+                    for (int j = 0; j < map.chunks[i].triangles.size(); j++) {
+                        for (int k = 0; k < map.chunks[i].triangles[j].size(); k++) {
+                            triangle_indicies.push_back(map.chunks[i].triangles[j][k]);
+                        }
+                    }
+
                     if (vertices.size() > 0 && chunk.has_been_updated) {
+                        
                         mesh_callback(i, vertices.data(), vertices.size(), normals.data(), normals.size(), uvs.data(), uvs.size(), triangle_indicies.data(), triangle_indicies.size());
                     }
+                    vertices.clear();
+                    normals.clear();
+                    triangle_indicies.clear();
+                    uvs.clear();
                 }
                 mesh_complete_callback();
             }
@@ -285,7 +288,7 @@ void TrackerObject::update_camera_texture_gpu() {
         return;
     }
     lock_image = true;
-    context->UpdateSubresource(d3d_texture, 0, NULL, current_image.getPtr<sl::uchar1>(), texture_width * texture_channels, 0);
+    context->UpdateSubresource(d3d_texture, (size_t)0, NULL, current_image.getPtr<sl::uchar1>(), texture_width * texture_channels, 0);
     lock_image = false;
     context->Release();
 }
