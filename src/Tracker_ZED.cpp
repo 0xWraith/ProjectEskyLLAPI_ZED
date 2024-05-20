@@ -47,9 +47,9 @@ void TrackerObject::tracking(bool use_localization) {
             if (start_spacial_mapping) {
                 start_spacial_mapping = false;
                 sl::SpatialMappingParameters spatial_mapping_params = configure_spatial_mapping_parameters(
-                    sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::MAPPING_RESOLUTION::LOW),
+                    sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::MAPPING_RESOLUTION::MEDIUM),
                     false,
-                    1.0,
+                    1.5,
                     false,
                     sl::SpatialMappingParameters::SPATIAL_MAP_TYPE::MESH);
                     
@@ -177,10 +177,11 @@ void TrackerObject::process_spatial_mapping(sl::Camera& zed, chrono::high_resolu
         std::stringstream ss;
         ss << "Error " << mapping_state << ", while spatial mapping";
         Debug::Log(ss.str());
-        stop_spacial_mapping = spatial_mapping_succesfully_started = false;
+        //stop_spacial_mapping = spatial_mapping_succesfully_started = false;
     } else {
         if (mapping_state == sl::SPATIAL_MAPPING_STATE::INITIALIZING) {
             Debug::Log("Spatial Mapping Initializing");
+
         } else if (mapping_state == sl::SPATIAL_MAPPING_STATE::OK) {
             auto now = chrono::high_resolution_clock::now();
             auto time_interval = chrono::duration_cast<chrono::milliseconds>(now - *last_time_stamp).count();
